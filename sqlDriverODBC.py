@@ -208,6 +208,30 @@ class SqlServer():
             conn.close()
 
 
+    def insertPBSFixed(self):
+        command = self.__command
+        conn = pyodbc.connect(self._connectionString)
+        
+        try:
+            cursor = conn.cursor()
+            cursor.execute(command)
+
+            # 🔥 tenta pegar resultado, se existir
+            try:
+                result = cursor.fetchall()
+            except pyodbc.ProgrammingError:
+                result = None  # não tem resultado (ex: INSERT / PROCEDURE sem SELECT)
+
+            conn.commit()
+
+            return result
+
+        finally:
+            cursor.close()
+            conn.close()
+
+
+
 
     # def insertPBSReturn(self):
     '''
