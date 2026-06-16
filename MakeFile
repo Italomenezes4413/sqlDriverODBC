@@ -1,2 +1,2 @@
 run:
-	py tests.py
+	py teste.py
