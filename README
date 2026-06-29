@@ -1,0 +1,3 @@
+Italo 26062026
+    - Adicinoei um LOCK_TIMEOUT nas funcoes de insert no SQL Server, para que não trave o insert
+        • Isso vai lancar um erro pyodbc.Error quando houver. HÁ NECESSIDADE de tratamento para isso. 

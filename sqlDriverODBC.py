@@ -198,9 +198,10 @@ class SqlServer():
 
     def insertPBS(self):
         command = self.__command
-        conn = pyodbc.connect(self._connectionString)
+        conn = pyodbc.connect(self._connectionString, timeout=30)
         try:
             cursor = conn.cursor()
+            cursor.execute('SET LOCK_TIMEOUT 1500')
             cursor.execute(command)
             cursor.commit()
         finally:
