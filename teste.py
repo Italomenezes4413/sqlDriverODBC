@@ -1,1 +1,0 @@
-print('Rodando o teste')

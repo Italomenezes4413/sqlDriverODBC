@@ -3,3 +3,5 @@ selenium
 icecream
 pyodbc
 pymongo
+psycopg[binary]
+pydantic

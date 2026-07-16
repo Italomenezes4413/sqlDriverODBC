@@ -4,6 +4,10 @@ from datetime import datetime
 import socket 
 from pymongo import MongoClient
 import platform
+from models import Postgree
+from typing import List
+import psycopg
+
 
 class SqlServer():
     def __init__(self, server, database,user, password) -> None:
@@ -77,29 +81,10 @@ class SqlServer():
         self.__command = command 
     ### FORMA DE PARAMETRIZAÇÃO DESCONTINUADA ########
 
-
-
-
-
-    # #Retornos conexão
-    # def getValidation(self):
-    #     '''
-    # descontinuado durante o desenvolvimento para ajustar concorrencia das funções
-    # '''
-    #     self.__conn = pyodbc.connect(self._connectionString)
-    #     self.__cursor = self.__conn.cursor()
-    #     self.__cursor.execute(self.__command)
-    #     usuario = self.__cursor.fetchall()
-    #     self.__cursor.close()
-
-    #     if usuario:
-    #         retornoBanco = usuario[0][0]
-    #         return retornoBanco
-    #     else:
-    #         return False         
+  
         
 
-    def getValidation(self):
+    def get_validation(self):
         comand = self.__command
         conn = pyodbc.connect(self._connectionString)
         try:
@@ -107,28 +92,13 @@ class SqlServer():
             cursor.execute(comand)
             usuario = cursor.fetchall()
             if usuario:
-                retornoBanco = usuario[0][0]
-                return retornoBanco
+                return True
             else:
                 return False
         finally:
             cursor.close()
             conn.close()
 
-
-
-        
-    # def stringPBS(self):
-    '''
-    descontinuado durante o desenvolvimento para ajustar concorrencia das funções
-    '''
-    #     self.__conexao = pyodbc.connect(self._connectionString)
-    #     cursor = self.__conexao.cursor()
-    #     cursor.execute(self.__command)
-    #     resultado = cursor.fetchall()
-    #     cursor.close()
-        
-    #     return resultado
 
 
     def stringPBS(self):
@@ -146,25 +116,6 @@ class SqlServer():
             cursor.close()
             conn.close()
 
-
-
-    # def stringPBSDicionario(self):
-    '''
-    descontinuado durante o desenvolvimento para ajustar concorrencia das funções
-    '''
-    #     self.__conexao = pyodbc.connect(self._connectionString)
-    #     cursor = self.__conexao.cursor()
-        
-    #     try:
-    #         cursor.execute(self.__command)
-    #         colunas = [col[0] for col in cursor.description]
-    #         resultado = [dict(zip(colunas, linha)) for linha in cursor.fetchall()]
-    #     except Exception as e:
-    #         cursor.close()
-    #         raise e
-        
-    #     cursor.close()
-    #     return resultado
     
 
     def stringPBSDicionario(self):
@@ -182,17 +133,6 @@ class SqlServer():
         finally:
             cursor.close()
             conn.close()
-
-    
-    # def insertPBS(self):
-    '''
-    descontinuado durante o desenvolvimento para ajustar concorrencia das funções
-    '''
-    
-    #     self.__conexao = pyodbc.connect(self._connectionString)
-    #     cursor = self.__conexao.cursor()
-    #     cursor.execute(self.__command)
-    #     cursor.commit()
 
 
 
@@ -217,7 +157,6 @@ class SqlServer():
             cursor = conn.cursor()
             cursor.execute(command)
 
-            # 🔥 tenta pegar resultado, se existir
             try:
                 result = cursor.fetchall()
             except pyodbc.ProgrammingError:
@@ -231,21 +170,6 @@ class SqlServer():
             cursor.close()
             conn.close()
 
-
-
-
-    # def insertPBSReturn(self):
-    '''
-    descontinuado durante o desenvolvimento para ajustar concorrencia das funções
-    '''
-    #     self.__conexao = pyodbc.connect(self._connectionString)
-    #     cursor = self.__conexao.cursor()
-    #     cursor.execute(self.__command)
-    #     row = cursor.fetchone()
-    #     cursor.commit() 
-    #     if row:
-    #         return str(row[0])
-    #     return None
     
 
     def insertPBSReturn(self):
@@ -401,3 +325,74 @@ class Mongo:
         result = col.find()
         return result    
         
+
+
+
+
+class Postgres:
+    def __init__(self, server_ini: Postgree):
+        self._server = server_ini.DB_SERV
+        self._database = server_ini.DB_DATA
+        self._user = server_ini.DB_USER
+        self._password = server_ini.DB_PASS
+        self._port = server_ini.DB_PORT or 5432
+
+        self._command = None
+
+        self._connection_string = (
+            f"host={self._server} "
+            f"port={self._port} "
+            f"dbname={self._database} "
+            f"user={self._user} "
+            f"password={self._password}"
+        )
+
+
+    def _set_command(self,command):
+        self._command = command
+
+
+    def _get_connection(self):
+        return psycopg.connect(self._connection_string)
+    
+
+    def db_select(self) -> List[tuple]:
+        command = self._command
+        
+        with self._get_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute(command)
+                data = cursor.fetchall()
+                return data
+        
+
+    def db_select_dicionario(self) -> List[dict]:
+        command = self._command
+        
+        with self._get_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute(command)
+                columns = [col[0] for col in cursor.description]
+                
+                return  [
+                    dict(zip(columns, row)) 
+                    for row in cursor.fetchall()
+                    ]
+                 
+
+
+    def db_insert(self) -> bool:
+        try:
+            with self._get_connection() as conn:
+                with conn.cursor() as cursor:
+                    cursor.execute(self._command)
+            return True
+        except Exception:
+            return False
+
+
+
+
+
+
+    
